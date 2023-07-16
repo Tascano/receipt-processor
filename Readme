@@ -124,3 +124,10 @@ To test the API using Swagger UI, you can follow these steps:
 9. Repeat the steps for other endpoints or different input data as needed.
 
 By using the Swagger UI, you can conveniently test your API endpoints and observe the responses in real-time. It provides an interactive interface for exploring and interacting with your API.
+
+
+For testing unit tests 
+$ pytest - v
+
+For testing integration
+$ python integration_tests.py
