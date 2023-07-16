@@ -1,5 +1,25 @@
 Readme 
 
+Brief : 
+This is a FastAPI based receipt processor REST API. Currently handles POST and GET requests. 
+Also has a SQLite based DB. 
+
+The default master branch has below - 
+Master branch - https://github.com/Tascano/receipt-processor/tree/master
+
+1. The default branch is built such that it has two databases - items and receipts with tables with the same names on it. 
+2. Schema of the receipt table is such that it does not save the points associated with the receipts so the points are calculated with every get requests. 
+
+The persist_points branch is such that it has below - 
+persist_points branch https://github.com/Tascano/receipt-processor/tree/persist_points
+1. It has one retail.db as database. In the retail.db, there are two tables - items and receipts. 
+2. Schema of the receipt table is such that it calculates and saves the points associated with the receipt at the time of post request. This helps as there is no calculation needed in the get request so the speed of query reply increases. 
+3. The disadvantage is, if the method to calculate points changes then we would need to backfill the receipts database. But my thought process is this. If we give a customer a receipt - the points are finalized and don't change even if the offer changes - so this backfill would not be required. 
+
+For Most part the major development of the project is done at persist_points branch. Please consider that working with it. 
+
+For any tests on the API consider developing your examples by looking at curl_examples.txt file. 
+
 ## Start 
 
 Create a new virtual environment (optional but recommended) by running the following command:
@@ -26,12 +46,12 @@ $ source venv/bin/activate
 
 ## To install requirements  
 Update requirements.txt 
-$pip install -r requirements.txt
+$ pip install -r requirements.txt
 
 
 
 ## To run a server 
-$uvicorn main:app --reload
+$ uvicorn main:app --reload
 
 
 ## To stop a running server 
@@ -84,7 +104,9 @@ Make sure your server is running on http://localhost:8000 or update the URL acco
 The response will include the generated ID for the processed receipt. You can also test the /receipts/{id}/points endpoint to retrieve the points for a specific receipt by replacing {id} with the actual ID of a processed receipt.
 
 
-# Use Curl ( tested on windows)
+# Use Curl 
+
+```
 
 $ curl -X POST -H "Content-Type: application/json" -d "{\"retailer\":\"Target\",\"purchaseDate\":\"2022-01-01\",\"purchaseTime\":\"13:01\",\"items\":[{\"shortDescription\":\"Mountain Dew 12PK\",\"price\":\"6.49\"},{\"shortDescription\":\"Emils Cheese Pizza\",\"price\":\"12.25\"},{\"shortDescription\":\"Knorr Creamy Chicken\",\"price\":\"1.26\"},{\"shortDescription\":\"Doritos Nacho Cheese\",\"price\":\"3.35\"},{\"shortDescription\":\"   Klarbrunn 12-PK 12 FL OZ  \",\"price\":\"12.00\"}],\"total\":\"35.35\"}" http://localhost:8000/receipts/process
 
@@ -92,6 +114,7 @@ $ curl -X POST -H "Content-Type: application/json" -d "{\"retailer\":\"Target\",
 
 $ curl http://localhost:8000/receipts/a03d8a7e-060b-4a1b-a464-40be361c6976/points
 >>> {"points":28}
+```
 
 # Swagger UI
 
@@ -116,3 +139,17 @@ To test the API using Swagger UI, you can follow these steps:
 9. Repeat the steps for other endpoints or different input data as needed.
 
 By using the Swagger UI, you can conveniently test your API endpoints and observe the responses in real-time. It provides an interactive interface for exploring and interacting with your API.
+
+
+
+# For testing unit tests 
+```
+$ pytest - v
+```
+
+# For testing integration
+If you are running on a custom ec2 or server, add the appropriate link to the base_url in the intergration_tests.py file
+
+```
+$ python integration_tests.py
+```
