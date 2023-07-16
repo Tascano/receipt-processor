@@ -24,10 +24,10 @@ class Receipt(BaseModel):
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize SQLite databases and create tables if they don't exist
-receipts_conn = sqlite3.connect("receipts.db")
-receipts_cursor = receipts_conn.cursor()
-receipts_cursor.execute("""
+# Initialize SQLite database and create tables if they don't exist
+conn = sqlite3.connect("retail.db")
+cursor = conn.cursor()
+cursor.execute("""
     CREATE TABLE IF NOT EXISTS receipts (
         id TEXT PRIMARY KEY,
         retailer TEXT,
@@ -37,11 +37,7 @@ receipts_cursor.execute("""
         points INTEGER DEFAULT 0
     )
 """)
-receipts_conn.commit()
-
-items_conn = sqlite3.connect("items.db")
-items_cursor = items_conn.cursor()
-items_cursor.execute("""
+cursor.execute("""
     CREATE TABLE IF NOT EXISTS items (
         id TEXT PRIMARY KEY,
         receiptId TEXT,
@@ -49,37 +45,37 @@ items_cursor.execute("""
         price TEXT
     )
 """)
-items_conn.commit()
+conn.commit()
 
 @app.post("/receipts/process", response_model=dict)
 async def process_receipt(receipt: Receipt):
     points = calculate_points(receipt)
     receipt_id = str(uuid4())
 
-    # Store the receipt in the receipts database
-    receipts_cursor.execute("""
+    # Store the receipt in the receipts table
+    cursor.execute("""
         INSERT INTO receipts (id, retailer, purchaseDate, purchaseTime, total, points)
         VALUES (?, ?, ?, ?, ?, ?)
     """, (receipt_id, receipt.retailer, receipt.purchaseDate, receipt.purchaseTime, receipt.total, points))
-    receipts_conn.commit()
+    conn.commit()
 
-    # Store the items in the items database
+    # Store the items in the items table
     for item in receipt.items:
         item_id = str(uuid4())
-        items_cursor.execute("""
+        cursor.execute("""
             INSERT INTO items (id, receiptId, shortDescription, price)
             VALUES (?, ?, ?, ?)
         """, (item_id, receipt_id, item.shortDescription, item.price))
-        items_conn.commit()
+        conn.commit()
 
     logger.info(f"Receipt processed. ID: {receipt_id}")
     return {"id": receipt_id}
 
 @app.get("/receipts/{id}/points", response_model=dict)
 async def get_points(id: UUID):
-    # Retrieve the points from the receipts database
-    receipts_cursor.execute("SELECT points FROM receipts WHERE id=?", (str(id),))
-    row = receipts_cursor.fetchone()
+    # Retrieve the points from the receipts table
+    cursor.execute("SELECT points FROM receipts WHERE id=?", (str(id),))
+    row = cursor.fetchone()
 
     if row is None:
         return {"error": "Receipt not found"}
@@ -150,10 +146,8 @@ def item_hook(obj):
         return Item(**obj)
     return obj
 
-# Close the database connections when the application shuts down
+# Close the database connection when the application shuts down
 @app.on_event("shutdown")
 def close_connections():
-    receipts_cursor.close()
-    receipts_conn.close()
-    items_cursor.close()
-    items_conn.close()
+    cursor.close()
+    conn.close()
