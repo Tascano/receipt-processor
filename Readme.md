@@ -1,17 +1,29 @@
-Readme 
+# Readme 
+Created by - https://github.com/Tascano
 
-Brief : 
+### Index 
+------------------------------------------
+[Brief](https://github.com/Tascano/receipt-processor/tree/persist_points) \
+[Start](https://github.com/Tascano/receipt-processor/tree/persist_points) \
+[Test](https://github.com/Tascano/receipt-processor/tree/persist_points) \
+[Docker](https://github.com/Tascano/receipt-processor/tree/persist_points) \
+[Scoped Improvements](https://github.com/Tascano/receipt-processor/tree/persist_points)
+
+------------------------------------------
+
+## Brief : 
 This is a FastAPI based receipt processor REST API. Currently handles POST and GET requests. 
-Also has a SQLite based DB. 
+Also has a SQLite based DB for persistance. The DB is currently created on local directory at the root of the folder - so the persistence is scoped only till the directory exists. 
 
-The default master branch has below - 
+#### The default master branch has below - 
 Master branch - https://github.com/Tascano/receipt-processor/tree/master
 
 1. The default branch is built such that it has two databases - items and receipts with tables with the same names on it. 
 2. Schema of the receipt table is such that it does not save the points associated with the receipts so the points are calculated with every get requests. 
 
-The persist_points branch is such that it has below - 
-persist_points branch https://github.com/Tascano/receipt-processor/tree/persist_points
+#### The persist_points branch is such that it has below - 
+persist_points branch - https://github.com/Tascano/receipt-processor/tree/persist_points
+
 1. It has one retail.db as database. In the retail.db, there are two tables - items and receipts. 
 2. Schema of the receipt table is such that it calculates and saves the points associated with the receipt at the time of post request. This helps as there is no calculation needed in the get request so the speed of query reply increases. 
 3. The disadvantage is, if the method to calculate points changes then we would need to backfill the receipts database. But my thought process is this. If we give a customer a receipt - the points are finalized and don't change even if the offer changes - so this backfill would not be required. 
@@ -21,14 +33,15 @@ For Most part the major development of the project is done at persist_points bra
 For any tests on the API consider developing your examples by looking at curl_examples.txt file. 
 
 ## Start 
+Start building up on the directory
 
-Create a new virtual environment (optional but recommended) by running the following command:
+##### Create a new virtual environment (optional but recommended) by running the following command:
 
 ```
 $ python -m venv venv
 ```
 
-Activate the virtual environment. The command to activate the virtual environment varies depending on your operating system:
+##### Activate the virtual environment. The command to activate the virtual environment varies depending on your operating system:
 
 For Windows (Command Prompt):
 ```
@@ -44,15 +57,15 @@ For macOS/Linux:
 $ source venv/bin/activate
 ```
 
-## To install requirements  
+##### To install requirements  
 Update requirements.txt 
 $ pip install -r requirements.txt
 
-## To run a server 
+##### To run a server 
 $ uvicorn main:app --reload
 
 
-## To stop a running server 
+##### To stop a running server 
 
 To stop a running uvicorn server started with the `uvicorn main:app --reload` command, you can use one of the following methods:
 
@@ -83,9 +96,9 @@ To stop a running uvicorn server started with the `uvicorn main:app --reload` co
 Choose the method that is most convenient for you to stop the uvicorn server.
 
 
-### To Test
+## To Test
 
-# Use Postman 
+#### Use Postman 
 
 If you're using Postman, you can follow these steps:
 
@@ -102,7 +115,7 @@ Make sure your server is running on http://localhost:8000 or update the URL acco
 The response will include the generated ID for the processed receipt. You can also test the /receipts/{id}/points endpoint to retrieve the points for a specific receipt by replacing {id} with the actual ID of a processed receipt.
 
 
-# Use Curl 
+#### Use Curl 
 
 ```
 
@@ -114,7 +127,7 @@ $ curl http://localhost:8000/receipts/a03d8a7e-060b-4a1b-a464-40be361c6976/point
 >>> {"points":28}
 ```
 
-# Swagger UI
+#### Swagger UI
 
 To test the API using Swagger UI, you can follow these steps:
 
@@ -140,19 +153,21 @@ By using the Swagger UI, you can conveniently test your API endpoints and observ
 
 
 
-# For testing unit tests 
+#### For testing unit tests
+Unit Test currently only checks the calculate_points function. It does not check for exceptions in input - as the function is not updated to handle it for now. 
+
 ```
 $ pytest - v
 ```
 
-# For testing integration
+#### For testing integration
 If you are running on a custom ec2 or server, add the appropriate link to the base_url in the intergration_tests.py file
 
 ```
 $ python integration_tests.py
 ```
 
-# To run dockerized 
+## To run Docker
 
 1. Open terminal in root directory
 2. $ docker build -t myapp .
@@ -164,7 +179,7 @@ $ python integration_tests.py
    - docker rm <container_id>
 
 
-# Improvements that can be done. 
+## Improvements that can be done. 
 1. Code has to be modularized. Seperate DB Model, Routes, etc.  
 2. Inplace of using plain sql, use ORM like SQLAlchemy
 3. Implement proper error handling, return HTTP codes, log and throw exceptions on the server side.
