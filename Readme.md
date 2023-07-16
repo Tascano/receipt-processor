@@ -162,3 +162,15 @@ $ python integration_tests.py
 6. To stop container and remove it run below commands 
    - docker stop <container_id>
    - docker rm <container_id>
+
+
+# Improvements that can be done. 
+1. Code has to be modularized. Seperate DB Model, Routes, etc.  
+2. Inplace of using plain sql, use ORM like SQLAlchemy
+3. Implement proper error handling, return HTTP codes, log and throw exceptions on the server side.
+4. Use DB Migration techniques like Alembic
+5. Use Pydantic's validation capabilities to validate and sanitize input data
+6. Consider logging more detailed information, such as request details, timestamps, and saving it.
+7. Improve unit tests, with this improve the code to handle exception properly. 
+8. Instead of hardcoding information, create configuration file. 
+9. Learn about scaling this by using methods like ECR -> Ec2. Use Boto3 to automate this. 
