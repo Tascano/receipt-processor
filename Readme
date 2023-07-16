@@ -1,0 +1,77 @@
+Readme 
+
+## Start 
+
+Create a new virtual environment (optional but recommended) by running the following command:
+
+```
+$ python -m venv venv
+```
+
+Activate the virtual environment. The command to activate the virtual environment varies depending on your operating system:
+
+For Windows (Command Prompt):
+```
+$ venv\Scripts\activate.bat
+```
+
+For Windows (PowerShell):
+```
+$ venv\Scripts\Activate.ps1
+```
+For macOS/Linux:
+```
+$ source venv/bin/activate
+```
+
+## To install requirements  
+Update requirements.txt 
+$pip install -r requirements.txt
+
+
+
+## To run a server 
+$uvicorn main:app --reload
+
+
+## To stop a running server 
+
+To stop a running uvicorn server started with the `uvicorn main:app --reload` command, you can use one of the following methods:
+
+1. Press `Ctrl + C` in the terminal where the server is running. This will send a KeyboardInterrupt signal, causing the server to stop gracefully.
+
+2. If you are running the server in the background or in a separate terminal session, you can find the process ID (PID) of the uvicorn process and terminate it using the appropriate command for your operating system.
+
+   - On Unix/Linux:
+     - Use the `ps` command to list the running processes and find the PID of the uvicorn process:
+       ```bash
+       ps aux | grep uvicorn
+       ```
+     - Once you have the PID, use the `kill` command followed by the PID to terminate the process:
+       ```bash
+       kill <PID>
+       ```
+
+   - On Windows:
+     - Use the `tasklist` command to list the running processes and find the PID of the uvicorn process:
+       ```bash
+       tasklist | findstr "uvicorn"
+       ```
+     - Once you have the PID, use the `taskkill` command followed by the PID to terminate the process:
+       ```bash
+       taskkill /PID <PID>
+       ```
+
+Choose the method that is most convenient for you to stop the uvicorn server.
+
+
+
+
+### Example 
+
+$ curl -X POST -H "Content-Type: application/json" -d "{\"retailer\":\"Target\",\"purchaseDate\":\"2022-01-01\",\"purchaseTime\":\"13:01\",\"items\":[{\"shortDescription\":\"Mountain Dew 12PK\",\"price\":\"6.49\"},{\"shortDescription\":\"Emils Cheese Pizza\",\"price\":\"12.25\"},{\"shortDescription\":\"Knorr Creamy Chicken\",\"price\":\"1.26\"},{\"shortDescription\":\"Doritos Nacho Cheese\",\"price\":\"3.35\"},{\"shortDescription\":\"   Klarbrunn 12-PK 12 FL OZ  \",\"price\":\"12.00\"}],\"total\":\"35.35\"}" http://localhost:8000/receipts/process
+
+>>> {"id":"a03d8a7e-060b-4a1b-a464-40be361c6976"}
+
+$ curl http://localhost:8000/receipts/a03d8a7e-060b-4a1b-a464-40be361c6976/points
+>>> {"points":28}
