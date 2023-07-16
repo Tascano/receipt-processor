@@ -1,0 +1,40 @@
+$ curl -X POST -H "Content-Type: application/json" -d "{\"retailer\":\"Target\",\"purchaseDate\":\"2022-01-01\",\"purchaseTime\":\"13:01\",\"items\":[{\"shortDescription\":\"Mountain Dew 12PK\",\"price\":\"6.49\"},{\"shortDescription\":\"Emils Cheese Pizza\",\"price\":\"12.25\"},{\"shortDescription\":\"Knorr Creamy Chicken\",\"price\":\"1.26\"},{\"shortDescription\":\"Doritos Nacho Cheese\",\"price\":\"3.35\"},{\"shortDescription\":\"   Klarbrunn 12-PK 12 FL OZ  \",\"price\":\"12.00\"}],\"total\":\"35.35\"}" http://localhost:8000/receipts/process
+
+>>> {"id":"a03d8a7e-060b-4a1b-a464-40be361c6976"}
+
+$ curl http://localhost:8000/receipts/a03d8a7e-060b-4a1b-a464-40be361c6976/points
+>>> {"points":28}
+_________________
+
+# When passing the JSON payload in the curl command, special characters like & need to be properly 
+# escaped. You can escape the & character by using %26 in the JSON payload. 
+
+$ curl -X POST -H "Content-Type: application/json" -d "{\"retailer\": \"M%26M Corner Market\", \"purchaseDate\": \"2022-03-20\", \"purchaseTime\": \"14:33\", \"items\": [{\"shortDescription\": \"Gatorade\", \"price\": \"2.25\"},{\"shortDescription\": \"Gatorade\", \"price\": \"2.25\"},{\"shortDescription\": \"Gatorade\", \"price\": \"2.25\"},{\"shortDescription\": \"Gatorade\", \"price\": \"2.25\"}], \"total\": \"9.00\"}" http://localhost:8000/receipts/process
+
+>>> {"id":"d27e6677-bc85-4e49-98b8-0b865880070d"}
+
+$ curl http://localhost:8000/receipts/d27e6677-bc85-4e49-98b8-0b865880070d/points
+
+>>> {"points":109}
+
+__________________
+morning-receipt.json
+
+$ curl -X POST -H "Content-Type: application/json" -d "{\"retailer\": \"Walgreens\", \"purchaseDate\": \"2022-01-02\", \"purchaseTime\": \"08:13\", \"total\": \"2.65\", \"items\": [{\"shortDescription\": \"Pepsi - 12-oz\", \"price\": \"1.25\"}, {\"shortDescription\": \"Dasani\", \"price\": \"1.40\"}]}" http://localhost:8000/receipts/process
+
+>>>{"id":"3c379a22-de32-4677-acfd-6caf68d8b7af"}
+
+$ curl http://localhost:8000/receipts/3c379a22-de32-4677-acfd-6caf68d8b7af/points
+
+>>> {"points":15}
+
+_________________
+
+examples/simple-receipt.json
+
+$ curl -X POST -H "Content-Type: application/json" -d "{\"retailer\": \"Target\", \"purchaseDate\": \"2022-01-02\", \"purchaseTime\": \"13:13\", \"total\": \"1.25\", \"items\": [{\"shortDescription\": \"Pepsi - 12-oz\", \"price\": \"1.25\"}]}" http://localhost:8000/receipts/process
+
+>>> {"id":"19e61267-77cd-45b9-b266-df5924acf8e0"}
+
+$ curl http://localhost:8000/receipts/19e61267-77cd-45b9-b266-df5924acf8e0/points
+>>> {"points":31}

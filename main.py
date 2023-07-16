@@ -24,41 +24,62 @@ class Receipt(BaseModel):
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize SQLite database and create table if it doesn't exist
-conn = sqlite3.connect("receipts.db")
-cursor = conn.cursor()
-cursor.execute("""
+# Initialize SQLite databases and create tables if they don't exist
+receipts_conn = sqlite3.connect("receipts.db")
+receipts_cursor = receipts_conn.cursor()
+receipts_cursor.execute("""
     CREATE TABLE IF NOT EXISTS receipts (
         id TEXT PRIMARY KEY,
         retailer TEXT,
         purchaseDate TEXT,
         purchaseTime TEXT,
-        items TEXT,
         total TEXT
     )
 """)
-conn.commit()
+receipts_conn.commit()
+
+items_conn = sqlite3.connect("items.db")
+items_cursor = items_conn.cursor()
+items_cursor.execute("""
+    CREATE TABLE IF NOT EXISTS items (
+        id TEXT PRIMARY KEY,
+        receiptId TEXT,
+        shortDescription TEXT,
+        price TEXT,
+        FOREIGN KEY (receiptId) REFERENCES receipts (id)
+    )
+""")
+items_conn.commit()
 
 @app.post("/receipts/process", response_model=dict)
 async def process_receipt(receipt: Receipt):
     points = calculate_points(receipt)
     receipt_id = str(uuid4())
 
-    # Store the receipt in the database
-    cursor.execute("""
-        INSERT INTO receipts (id, retailer, purchaseDate, purchaseTime, items, total)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (receipt_id, receipt.retailer, receipt.purchaseDate, receipt.purchaseTime, json.dumps(receipt.items, default=item_encoder), receipt.total))
-    conn.commit()
+    # Store the receipt in the receipts database
+    receipts_cursor.execute("""
+        INSERT INTO receipts (id, retailer, purchaseDate, purchaseTime, total)
+        VALUES (?, ?, ?, ?, ?)
+    """, (receipt_id, receipt.retailer, receipt.purchaseDate, receipt.purchaseTime, receipt.total))
+    receipts_conn.commit()
+
+    # Store the items in the items database
+    for item in receipt.items:
+        item_id = str(uuid4())
+        items_cursor.execute("""
+            INSERT INTO items (id, receiptId, shortDescription, price)
+            VALUES (?, ?, ?, ?)
+        """, (item_id, receipt_id, item.shortDescription, item.price))
+    items_conn.commit()
 
     logger.info(f"Receipt processed. ID: {receipt_id}")
     return {"id": receipt_id}
 
 @app.get("/receipts/{id}/points", response_model=dict)
 async def get_points(id: UUID):
-    # Retrieve the receipt from the database
-    cursor.execute("SELECT * FROM receipts WHERE id=?", (str(id),))
-    row = cursor.fetchone()
+    # Retrieve the receipt from the receipts database
+    receipts_cursor.execute("SELECT * FROM receipts WHERE id=?", (str(id),))
+    row = receipts_cursor.fetchone()
 
     if row is None:
         return {"error": "Receipt not found"}
@@ -67,9 +88,20 @@ async def get_points(id: UUID):
         retailer=row[1],
         purchaseDate=row[2],
         purchaseTime=row[3],
-        items=item_decoder(row[4]),
-        total=row[5]
+        items=[],
+        total=row[4]
     )
+
+    # Retrieve the items from the items database
+    items_cursor.execute("SELECT * FROM items WHERE receiptId=?", (str(id),))
+    rows = items_cursor.fetchall()
+
+    for item_row in rows:
+        item = Item(
+            shortDescription=item_row[2],
+            price=item_row[3]
+        )
+        receipt.items.append(item)
 
     points = calculate_points(receipt)
 
@@ -79,12 +111,13 @@ async def get_points(id: UUID):
 def calculate_points(receipt: Receipt) -> int:
     points = 0
 
-    # Rule 1: One point for every alphanumeric character in the retailer name
-    points += sum(char.isalnum() for char in receipt.retailer)
+    # Rule 1: One point for every alphanumeric character in the retailer name (excluding whitespace and special characters)
+    points += sum(char.isalnum() for char in receipt.retailer if char.isalpha())
     logger.info(f"Points after Rule 1: {points}")
 
+
     # Rule 2: 50 points if the total is a round dollar amount with no cents
-    if receipt.total.endswith('.00'):
+    if float(receipt.total) == int(float(receipt.total)):
         points += 50
     logger.info(f"Points after Rule 2: {points}")
 
@@ -120,24 +153,10 @@ def calculate_points(receipt: Receipt) -> int:
     return points
 
 
-# Custom JSON encoder for Item class
-def item_encoder(obj):
-    if isinstance(obj, Item):
-        return obj.dict()
-    return obj
-
-# Custom JSON decoder for items list
-def item_decoder(items_str):
-    decoder = json.JSONDecoder(object_hook=item_hook)
-    return decoder.decode(items_str)
-
-def item_hook(obj):
-    if "shortDescription" in obj and "price" in obj:
-        return Item(**obj)
-    return obj
-
-# Close the database connection when the application shuts down
+# Close the database connections when the application shuts down
 @app.on_event("shutdown")
-def close_connection():
-    cursor.close()
-    conn.close()
+def close_connections():
+    receipts_cursor.close()
+    receipts_conn.close()
+    items_cursor.close()
+    items_conn.close()

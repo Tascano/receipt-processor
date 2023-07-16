@@ -65,9 +65,26 @@ To stop a running uvicorn server started with the `uvicorn main:app --reload` co
 Choose the method that is most convenient for you to stop the uvicorn server.
 
 
+### To Test
+
+# Use Postman 
+
+If you're using Postman, you can follow these steps:
+
+1. Open Postman and create a new request.
+2. Set the request URL to http://localhost:8000/receipts/process.
+3. Choose the HTTP method as POST.
+4. Select the "Body" tab.
+5. Select "Raw" and set the body format as JSON (application/json).
+6. Paste the provided JSON payload into the request body.
+7. Click the "Send" button to send the request and view the response.
+
+Make sure your server is running on http://localhost:8000 or update the URL accordingly if it's different.
+
+The response will include the generated ID for the processed receipt. You can also test the /receipts/{id}/points endpoint to retrieve the points for a specific receipt by replacing {id} with the actual ID of a processed receipt.
 
 
-### Example 
+# Use Curl ( tested on windows)
 
 $ curl -X POST -H "Content-Type: application/json" -d "{\"retailer\":\"Target\",\"purchaseDate\":\"2022-01-01\",\"purchaseTime\":\"13:01\",\"items\":[{\"shortDescription\":\"Mountain Dew 12PK\",\"price\":\"6.49\"},{\"shortDescription\":\"Emils Cheese Pizza\",\"price\":\"12.25\"},{\"shortDescription\":\"Knorr Creamy Chicken\",\"price\":\"1.26\"},{\"shortDescription\":\"Doritos Nacho Cheese\",\"price\":\"3.35\"},{\"shortDescription\":\"   Klarbrunn 12-PK 12 FL OZ  \",\"price\":\"12.00\"}],\"total\":\"35.35\"}" http://localhost:8000/receipts/process
 
@@ -75,3 +92,27 @@ $ curl -X POST -H "Content-Type: application/json" -d "{\"retailer\":\"Target\",
 
 $ curl http://localhost:8000/receipts/a03d8a7e-060b-4a1b-a464-40be361c6976/points
 >>> {"points":28}
+
+# Swagger UI
+
+To test the API using Swagger UI, you can follow these steps:
+
+1. Make sure your FastAPI server is running.
+
+2. Open your web browser and navigate to the Swagger UI URL. By default, it should be `http://localhost:8000/docs`.
+
+3. Once the Swagger UI page is loaded, you will see the list of available endpoints and their corresponding input/output models.
+
+4. Click on the endpoint you want to test, such as `/receipts/process` or `/receipts/{id}/points`. This will expand the endpoint and display the input parameters and response models.
+
+5. Click on the "Try it out" button to open the input form for the selected endpoint.
+
+6. Fill in the input fields with the desired values based on the request model. For example, for the `/receipts/process` endpoint, you can provide the input data in the "Example Value" section.
+
+7. After filling in the input data, click the "Execute" button to send the request to the server.
+
+8. The response from the server will be displayed below the input form. You can check the response status, response body, and any error messages returned by the server.
+
+9. Repeat the steps for other endpoints or different input data as needed.
+
+By using the Swagger UI, you can conveniently test your API endpoints and observe the responses in real-time. It provides an interactive interface for exploring and interacting with your API.
