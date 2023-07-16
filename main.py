@@ -128,24 +128,7 @@ def calculate_points(receipt: Receipt) -> int:
     logger.info(f"Points after Rule 7: {points}")
 
     return points
-
-
-# Custom JSON encoder for Item class
-def item_encoder(obj):
-    if isinstance(obj, Item):
-        return obj.dict()
-    return obj
-
-# Custom JSON decoder for items list
-def item_decoder(items_str):
-    decoder = json.JSONDecoder(object_hook=item_hook)
-    return decoder.decode(items_str)
-
-def item_hook(obj):
-    if "shortDescription" in obj and "price" in obj:
-        return Item(**obj)
-    return obj
-
+    
 # Close the database connection when the application shuts down
 @app.on_event("shutdown")
 def close_connections():
