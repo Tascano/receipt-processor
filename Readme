@@ -1,5 +1,13 @@
 Readme 
 
+Created a new schema in the Receipts Database where I persist the points. 
+
+Pros - 
+1. Less cost from the requirement to join 2 tables (items and receipts) and then doing calculations when fetching results (get request). 
+
+Cons - 
+1. If the method to calculate points changes then we would need to backfill the receipts database. But my thought process is this. If we give a customer a receipt - the points are finalized and don't change even if the offer changes - so this backfill would not be required. 
+
 ## Start 
 
 Create a new virtual environment (optional but recommended) by running the following command:

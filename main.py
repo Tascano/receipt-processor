@@ -33,7 +33,8 @@ receipts_cursor.execute("""
         retailer TEXT,
         purchaseDate TEXT,
         purchaseTime TEXT,
-        total TEXT
+        total TEXT,
+        points INTEGER DEFAULT 0
     )
 """)
 receipts_conn.commit()
@@ -45,8 +46,7 @@ items_cursor.execute("""
         id TEXT PRIMARY KEY,
         receiptId TEXT,
         shortDescription TEXT,
-        price TEXT,
-        FOREIGN KEY (receiptId) REFERENCES receipts (id)
+        price TEXT
     )
 """)
 items_conn.commit()
@@ -58,9 +58,9 @@ async def process_receipt(receipt: Receipt):
 
     # Store the receipt in the receipts database
     receipts_cursor.execute("""
-        INSERT INTO receipts (id, retailer, purchaseDate, purchaseTime, total)
-        VALUES (?, ?, ?, ?, ?)
-    """, (receipt_id, receipt.retailer, receipt.purchaseDate, receipt.purchaseTime, receipt.total))
+        INSERT INTO receipts (id, retailer, purchaseDate, purchaseTime, total, points)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (receipt_id, receipt.retailer, receipt.purchaseDate, receipt.purchaseTime, receipt.total, points))
     receipts_conn.commit()
 
     # Store the items in the items database
@@ -70,40 +70,21 @@ async def process_receipt(receipt: Receipt):
             INSERT INTO items (id, receiptId, shortDescription, price)
             VALUES (?, ?, ?, ?)
         """, (item_id, receipt_id, item.shortDescription, item.price))
-    items_conn.commit()
+        items_conn.commit()
 
     logger.info(f"Receipt processed. ID: {receipt_id}")
     return {"id": receipt_id}
 
 @app.get("/receipts/{id}/points", response_model=dict)
 async def get_points(id: UUID):
-    # Retrieve the receipt from the receipts database
-    receipts_cursor.execute("SELECT * FROM receipts WHERE id=?", (str(id),))
+    # Retrieve the points from the receipts database
+    receipts_cursor.execute("SELECT points FROM receipts WHERE id=?", (str(id),))
     row = receipts_cursor.fetchone()
 
     if row is None:
         return {"error": "Receipt not found"}
 
-    receipt = Receipt(
-        retailer=row[1],
-        purchaseDate=row[2],
-        purchaseTime=row[3],
-        items=[],
-        total=row[4]
-    )
-
-    # Retrieve the items from the items database
-    items_cursor.execute("SELECT * FROM items WHERE receiptId=?", (str(id),))
-    rows = items_cursor.fetchall()
-
-    for item_row in rows:
-        item = Item(
-            shortDescription=item_row[2],
-            price=item_row[3]
-        )
-        receipt.items.append(item)
-
-    points = calculate_points(receipt)
+    points = row[0]
 
     logger.info(f"Points retrieved for ID {id}: {points}")
     return {"points": points}
@@ -152,6 +133,22 @@ def calculate_points(receipt: Receipt) -> int:
 
     return points
 
+
+# Custom JSON encoder for Item class
+def item_encoder(obj):
+    if isinstance(obj, Item):
+        return obj.dict()
+    return obj
+
+# Custom JSON decoder for items list
+def item_decoder(items_str):
+    decoder = json.JSONDecoder(object_hook=item_hook)
+    return decoder.decode(items_str)
+
+def item_hook(obj):
+    if "shortDescription" in obj and "price" in obj:
+        return Item(**obj)
+    return obj
 
 # Close the database connections when the application shuts down
 @app.on_event("shutdown")
