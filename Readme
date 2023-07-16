@@ -48,8 +48,6 @@ $ source venv/bin/activate
 Update requirements.txt 
 $ pip install -r requirements.txt
 
-
-
 ## To run a server 
 $ uvicorn main:app --reload
 
@@ -153,3 +151,14 @@ If you are running on a custom ec2 or server, add the appropriate link to the ba
 ```
 $ python integration_tests.py
 ```
+
+# To run dockerized 
+
+1. Open terminal in root directory
+2. $ docker build -t myapp .
+3. $ docker run -d -p 8000:8000 myapp
+4. Test by doing all of the above tests such as swagger ui, or running integration tests at address http://localhost:8000
+5. See all open docker containers by running ```$ docker ps```
+6. To stop container and remove it run below commands 
+   - docker stop <container_id>
+   - docker rm <container_id>
